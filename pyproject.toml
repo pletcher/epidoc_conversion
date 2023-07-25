@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "epidoc-conversion"
+version = "0.1.0"
+description = ""
+authors = ["Charles Pletcher <pletcher@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "epidoc_conversion"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+lxml = "^4.9.3"
+
+
+[tool.poetry.group.dev.dependencies]
+jupyterlab = "^4.0.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
