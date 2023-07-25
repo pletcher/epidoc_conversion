@@ -1,14 +1,3 @@
-Epidoc Conversion Tools
-------
-
-A small module for making old TEI XML Epidoc-compliant.
-
-# Overview
-
-See [epidoc_conversion/converter.py](epidoc_conversion/converter.py).
-
-# License
-
 The MIT License
 
 Copyright 2023 scaife.perseus.org
