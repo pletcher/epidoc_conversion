@@ -16,6 +16,77 @@ APP = E.app
 DATE = E.date
 LEM = E.lem
 
+ENTITIES = {
+    '&Acirc;': 'Â',
+    '&Amacr;': 'Ā',
+    '&Ebreve;': 'Ĕ',
+    # this is an approximation
+    '&Eunc;': 'ϵ',
+    '&Obreve;': 'Ŏ',
+    '&Omacr;': 'Ō',
+    '&abreve;': 'ă',
+    '&acirc': 'â',
+    '&adot;': 'ȧ',
+    '&amacr;': 'ā',
+    '&anceps;': '×',
+    '&ast;': '*',
+    '&brevemacr;': '᷋',
+    '&cacute;': 'ć',
+    '&ccaron;': 'č',
+    '&ccedil;': 'ç',
+    '&dash;': '–',
+    '&eacute;': 'é',
+    '&ebreve;': 'ĕ',
+    '&ecirc;': 'ê',
+    '&edot;': 'ė',
+    # just an approximation
+    '&eglide;': 'ε̬',
+    '&egrave;': 'è',
+    '&emacr;': 'ē',
+    '&enull;': 'ε̥',
+    '&euml;': 'ë',
+    '&ibreve;': 'ĭ',
+    '&icirc;': 'î',
+    # this is the closest unicode can get to ι with a glide below
+    '&iglide;': 'ɩ̧',
+    '&imacr;': 'ī',
+    '&koppa;': 'ϟ',
+    '&lins;': '<img src="//upload.wikimedia.org/wikipedia/commons/thumb/2/27/Greek_Lambda_Athenian.svg/13px-Greek_Lambda_Athenian.svg.png" decoding="async" width="13" height="16" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/2/27/Greek_Lambda_Athenian.svg/19px-Greek_Lambda_Athenian.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/2/27/Greek_Lambda_Athenian.svg/26px-Greek_Lambda_Athenian.svg.png 2x" data-file-width="43" data-file-height="53"/>',
+    '&hellip;': '…',
+    '&ldquo;': '“',
+    '&lnull;': 'λ̥',
+    '&rdquo;': '”',
+    '&macrdot;': '∸',
+    '&mdash;': '—',
+    '&mnull;': 'μ̥',
+    '&ndash;': '–',
+    '&nbsp;': ' ',
+    '&nnull;': 'ν̥',
+    '&num;': 'ʹ',
+    '&obreve;': 'ŏ',
+    '&ocirc;': 'ô',
+    '&odblac;': 'ö',
+    '&omacr;': 'ō',
+    '&ouml;': 'ö',
+    '&lpar;': '(',
+    '&rpar;': ')',
+    '&lsqb;': '[',
+    '&rsqb;': ']',
+    '&lsquo;': '‘',
+    '&rsquo;': '’',
+    '&rnull;': 'ρ̥',
+    '&sampi;': 'ϡ',
+    '&tnum;': '͵',
+    '&ubreve;': 'ŭ',
+    '&ucirc;': 'û',
+    # this is the closest unicode can currently get to υ with a glide
+    '&uglide;': 'ṵ',
+    '&umacr;': 'ū',
+    '&uuml;': 'ü',
+    '&rough;': '῾',
+    '&smooth;': '᾽',
+}
+
 LANGUAGES = {
     'de': 'deu',
     'en': 'eng',
@@ -29,10 +100,24 @@ TEI_NS = "{http://www.tei-c.org/ns/1.0}"
 XML_NS = "{http://www.w3.org/XML/1998/namespace}"
 
 def fix_date(s):
-    return s.zfill(5 if int(s) < 0 else 4)
+    try:
+        return s.zfill(5 if int(s) < 0 else 4)
+    except ValueError:
+        return s
 
 def fix_lang(s):
     return LANGUAGES.get(s, s)
+
+def preconvert(filename):
+    with open(filename, 'r') as f:
+        raw = f.read()
+
+    for entity, s in ENTITIES.items():
+        raw = raw.replace(entity, s)
+
+    with open(filename, 'w') as f:
+        f.write(raw)
+
 
 class Converter:
     def __init__(self, filename):
@@ -150,6 +235,7 @@ class Converter:
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    preconvert(args.filename)
     converter = Converter(args.filename)
     converter.convert()
 
