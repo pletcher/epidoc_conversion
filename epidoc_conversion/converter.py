@@ -1,125 +1,13 @@
-import argparse
-
 from lxml import etree
 from lxml.builder import ElementMaker
 
-parser = argparse.ArgumentParser(
-                    prog='Epidoc Conversion',
-                    description='Script to help with cleaning up Epidoc XML files',
-                    epilog='')
-
-parser.add_argument('filename')
+from .character_entities import ENTITIES
 
 E = ElementMaker(namespace="http://www.tei-c.org/ns/1.0",
                 nsmap={None: "http://www.tei-c.org/ns/1.0"})
 APP = E.app
 DATE = E.date
 LEM = E.lem
-
-ENTITIES = {
-    '&Acirc;': 'Â',
-    '&Amacr;': 'Ā',
-    # I don't know if Unicode can actually represent this -- it should have the turnstile on top of the A
-    '&Arpress;': 'ⱵA',
-    '&Ebreve;': 'Ĕ',
-    # this is an approximation
-    '&Eunc;': 'ϵ',
-    '&Ndot;': 'Ṅ',
-    '&Obreve;': 'Ŏ',
-    '&Omacr;': 'Ō',
-    '&abreve;': 'ă',
-    '&acirc;': 'â',
-    '&acutebreve;': '́̆',
-    '&adot;': 'ȧ',
-    '&amacr;': 'ā',
-    '&anceps;': '×',
-    '&ast;': '*',
-    '&brevemacr;': '᷋',
-    '&cacute;': 'ć',
-    '&ccaron;': 'č',
-    '&ccedil;': 'ç',
-    '&cnull;': 'c̥',
-    '&dash;': '–',
-    '&eacute;': 'é',
-    '&ebreve;': 'ĕ',
-    '&ecirc;': 'ê',
-    '&edot;': 'ė',
-    # just an approximation
-    '&eglide;': 'ε̬',
-    '&egrave;': 'è',
-    '&emacr;': 'ē',
-    '&emacracute;': 'ḗ',
-    '&enull;': 'ε̥',
-    '&euml;': 'ë',
-    '&gacute;': 'ǵ',
-    '&gdot;': 'ġ',
-    '&grave;': '`',
-    '&ibreve;': 'ĭ',
-    '&icirc;': 'î',
-    # this is the closest unicode can get to ι with a glide below
-    '&iglide;': 'ɩ̧',
-    '&imacr;': 'ī',
-    '&kacute;': 'ḱ',
-    # I'm guessing they meant '&koppa;'
-    '&koopa;': 'ϙ',
-    '&koppa;': 'ϟ',
-    '&lins;': '<img src="//upload.wikimedia.org/wikipedia/commons/thumb/2/27/Greek_Lambda_Athenian.svg/13px-Greek_Lambda_Athenian.svg.png" decoding="async" width="13" height="16" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/2/27/Greek_Lambda_Athenian.svg/19px-Greek_Lambda_Athenian.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/2/27/Greek_Lambda_Athenian.svg/26px-Greek_Lambda_Athenian.svg.png 2x" data-file-width="43" data-file-height="53"/>',
-    '&hellip;': '…',
-    '&ldquo;': '“',
-    '&lnull;': 'λ̥',
-    '&lpress;': '⊣',
-    '&rdquo;': '”',
-    '&macracute;': '́̄',
-    '&macrbreve;': '᷋',
-    '&macrdot;': '∸',
-    '&mdash;': '—',
-    '&mnull;': 'μ̥',
-    '&ndash;': '–',
-    '&ndot;': 'ṅ',
-    '&nbsp;': ' ',
-    '&nnull;': 'ν̥',
-    '&num;': 'ʹ',
-    '&obreve;': 'ŏ',
-    '&ocirc;': 'ô',
-    '&odblac;': 'ö',
-    '&omacr;': 'ō',
-    '&ouml;': 'ö',
-    '&lpar;': '(',
-    '&rpar;': ')',
-    '&rpress;': 'Ⱶ',
-    '&lsqb;': '[',
-    '&rsqb;': ']',
-    '&lsquo;': '‘',
-    '&rsquo;': '’',
-    '&rmacr;': 'ṝ',
-    '&rnull;': 'ρ̥',
-    '&root;': '√',
-    '&sampi;': 'ϡ',
-    '&tnull;': 't̥',
-    '&tnum;': '͵',
-    '&rcirc;': 'ř',
-    # not quote right, but about as close as we can get
-    '&rlcrop;': '⎣',
-    '&rough;': '῾',
-    '&rtilde;': 'r̃',
-    '&sacute;': 'ś',
-    '&sbreve;': 'š',
-    '&schwa;': 'ə',
-    '&scirc;': 'ŝ',
-    '&scron;': 'š',
-    '&smooth;': '᾽',
-    # not quote right, but about as close as we can get
-    '&ubreve;': 'ŭ',
-    '&ucirc;': 'û',
-    # this is the closest unicode can currently get to υ with a glide
-    '&uglide;': 'ṵ',
-    '&umacr;': 'ū',
-    '&uuml;': 'ü',
-    '&ulcrop;': '⎤',
-    '&urcrop;': '⎡',
-    '&ymacr;': 'ȳ',
-    '&zcaron;': 'ž',
-}
 
 LANGUAGES = {
     'de': 'deu',
@@ -160,18 +48,18 @@ class Converter:
         self.tree = etree.parse(filename, parser=parser)
 
     def convert(self):
-        converter.convert_lemma_to_applemma()
-        converter.convert_argument_tags()
-        converter.convert_bylines()
-        converter.convert_dates()
-        converter.convert_langs()
-        converter.convert_speeches()
-        converter.convert_summary_children_to_siblings()
-        converter.convert_overviews()
-        converter.convert_summaries()
-        converter.convert_sections()
-        converter.remove_targOrder_attr()
-        converter.write_etree()
+        self.convert_lemma_to_applemma()
+        self.convert_argument_tags()
+        self.convert_bylines()
+        self.convert_dates()
+        self.convert_langs()
+        self.convert_speeches()
+        self.convert_summary_children_to_siblings()
+        self.convert_overviews()
+        self.convert_summaries()
+        self.convert_sections()
+        self.remove_targOrder_attr()
+        self.write_etree()
 
     def convert_argument_tags(self):
         for argument in self.tree.iterfind(f".//{TEI_NS}argument"):
@@ -266,11 +154,3 @@ class Converter:
         with open(self.filename, 'wb') as f:
             etree.indent(self.tree, space="\t")
             f.write(etree.tostring(self.tree, encoding="utf-8", xml_declaration=True))
-
-if __name__ == '__main__':
-    args = parser.parse_args()
-    preconvert(args.filename)
-    converter = Converter(args.filename)
-    converter.convert()
-
-    
