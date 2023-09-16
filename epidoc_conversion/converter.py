@@ -1,4 +1,5 @@
 from betacode import conv
+from copy import deepcopy
 from lxml import etree
 from lxml.builder import ElementMaker
 
@@ -85,10 +86,27 @@ class Converter:
             replacement.tail = lemma.tail or ''
             lemma.getparent().replace(lemma, replacement)
 
+    # FIXME: This still misses cases where there is an element
+    # within the Greek-language el, e.g.,
+    # <foreign xml:lang="grc">νόμων <gap reason="illegible"/> o(/soi ai)sxu/nhn fe/rousi</foreign>
     def convert_betacode_to_unicode(self):
-        for node in self.tree.iterfind(f".//*[@{XML_NS}lang='greek']"):
+        for node in self.tree.iterfind(f".//*[@{XML_NS}lang='grc']"):
             if node.text is not None:
                 node.text = conv.beta_to_uni(node.text)
+        
+            if node.tail is not None:
+                node.tail = conv.beta_to_uni(node.tail)
+            
+            for el in node:
+                parent = el.getparent()
+                replacement = deepcopy(el)
+
+                if el.text is not None:    
+                    replacement.text = conv.beta_to_uni(el.text)
+                if el.tail is not None:
+                    replacement.tail = conv.beta_to_uni(el.tail)
+                
+                parent.replace(el, replacement)
 
     def convert_dates(self):
         for date in self.tree.iterfind(f".//{TEI_NS}date"):
