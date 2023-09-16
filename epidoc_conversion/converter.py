@@ -1,3 +1,4 @@
+from betacode import conv
 from lxml import etree
 from lxml.builder import ElementMaker
 
@@ -49,6 +50,7 @@ class Converter:
 
     def convert(self):
         self.convert_lemma_to_applemma()
+        self.convert_betacode_to_unicode()
         self.convert_argument_tags()
         self.convert_bylines()
         self.convert_dates()
@@ -82,6 +84,11 @@ class Converter:
             )
             replacement.tail = lemma.tail or ''
             lemma.getparent().replace(lemma, replacement)
+
+    def convert_betacode_to_unicode(self):
+        for node in self.tree.iterfind(f".//*[@{XML_NS}lang='greek']"):
+            if node.text is not None:
+                node.text = conv.beta_to_uni(node.text)
 
     def convert_dates(self):
         for date in self.tree.iterfind(f".//{TEI_NS}date"):
