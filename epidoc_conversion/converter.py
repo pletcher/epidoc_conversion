@@ -9,6 +9,7 @@ E = ElementMaker(namespace="http://www.tei-c.org/ns/1.0",
                 nsmap={None: "http://www.tei-c.org/ns/1.0"})
 APP = E.app
 DATE = E.date
+DIV = E.div
 LEM = E.lem
 
 LANGUAGES = {
@@ -51,11 +52,14 @@ class Converter:
 
     def convert(self):
         self.convert_lemma_to_applemma()
-        self.convert_betacode_to_unicode()
         self.convert_argument_tags()
         self.convert_bylines()
         self.convert_dates()
         self.convert_langs()
+        # betacode to unicode needs to come after
+        # language attributes have been fixed
+        self.convert_betacode_to_unicode()
+        self.convert_milestones_to_textparts()
         self.convert_speeches()
         self.convert_summary_children_to_siblings()
         self.convert_overviews()
@@ -93,11 +97,8 @@ class Converter:
         for node in self.tree.iterfind(f".//*[@{XML_NS}lang='grc']"):
             if node.text is not None:
                 node.text = conv.beta_to_uni(node.text)
-        
-            if node.tail is not None:
-                node.tail = conv.beta_to_uni(node.tail)
             
-            for el in node:
+            for el in node.iterfind(f"./*[@{XML_NS}lang='grc']"):
                 parent = el.getparent()
                 replacement = deepcopy(el)
 
@@ -135,6 +136,29 @@ class Converter:
             del lang_el.attrib['lang']
 
             lang_el.attrib[f'{XML_NS}lang'] = fix_lang(lang)
+
+        for lang_el in self.tree.iterfind(f".//*[@{XML_NS}lang]"):
+            lang = lang_el.get(f"{XML_NS}lang")
+            lang_el.attrib[f'{XML_NS}lang'] = fix_lang(lang)
+
+    def convert_milestones_to_textparts(self):
+        for milestone in self.tree.iterfind(f".//{TEI_NS}milestone"):
+            current_unit = milestone.get('unit')
+
+            if current_unit is None:
+                break
+
+            siblings = []
+            
+            for sibling in milestone.itersiblings():
+                if sibling.tag == f"{TEI_NS}milestone" and sibling.get('unit') == current_unit:
+                    break
+                siblings.append(sibling)
+            
+            div = DIV(type="textpart", subtype=current_unit, n=milestone.get('n'), *siblings)
+            parent = milestone.getparent()
+            parent.replace(milestone, div)
+
 
     def convert_speeches(self):
         for speech in self.tree.iterfind(f".//{TEI_NS}div[@type='speech']"):
