@@ -15,6 +15,7 @@ ENTITIES = {
     '&Gbreve;': 'Ğ',
     '&Gdot;': 'G̣',
     '&Hdot;': 'Ḥ',
+    '&icaron;': 'ǐ',
     '&Idot;': 'Ị',
     '&Imacr;': 'Ī',
     '&Itilde;': 'Ĩ',

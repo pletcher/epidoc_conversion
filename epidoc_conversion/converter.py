@@ -78,7 +78,7 @@ class Converter:
     def convert_bylines(self):
         for byline in self.tree.iterfind(f".//{TEI_NS}byline"):
             byline.tag = "docAuthor"
-    
+
     def convert_lemma_to_applemma(self):
         for lemma in self.tree.iterfind(f".//{TEI_NS}lemma"):
             orig_lang = lemma.attrib.get(f'{XML_NS}lang', lemma.attrib.get('lang'))
@@ -97,16 +97,20 @@ class Converter:
         for node in self.tree.iterfind(f".//*[@{XML_NS}lang='grc']"):
             if node.text is not None:
                 node.text = conv.beta_to_uni(node.text)
-            
+
             for el in node.iterfind(f"./*[@{XML_NS}lang='grc']"):
                 parent = el.getparent()
                 replacement = deepcopy(el)
 
-                if el.text is not None:    
+                if el.text is not None:
                     replacement.text = conv.beta_to_uni(el.text)
                 if el.tail is not None:
                     replacement.tail = conv.beta_to_uni(el.tail)
-                
+
+                for sub_el in el.iterfind(f"./*"):
+                    if sub_el.tail is not None:
+                        sub_el.tail = conv.beta_to_uni(sub_el.tail)
+
                 parent.replace(el, replacement)
 
     def convert_dates(self):
@@ -115,10 +119,10 @@ class Converter:
 
             if when is None:
                 continue
-            
+
             if date.attrib.get('value') is not None:
                 del date.attrib['value']
-            
+
             date.attrib['when'] = fix_date(when)
 
         for date_range in self.tree.iterfind(f".//{TEI_NS}dateRange"):
@@ -149,13 +153,13 @@ class Converter:
                 break
 
             siblings = []
-            
+
             for sibling in milestone.itersiblings():
                 if sibling.tag == f"{TEI_NS}milestone" and sibling.get('unit') == current_unit:
                     break
                 siblings.append(sibling)
-            
-            div = DIV(type="textpart", subtype=current_unit, n=milestone.get('n'), *siblings)
+
+            div = DIV(type="textpart", subtype=current_unit, n=milestone.get('n', ''), ed=milestone.get('ed', ''), *siblings)
             parent = milestone.getparent()
             parent.replace(milestone, div)
 
@@ -164,7 +168,7 @@ class Converter:
         for speech in self.tree.iterfind(f".//{TEI_NS}div[@type='speech']"):
             speech.attrib['type'] = 'commentary'
             speech.attrib['subtype'] = 'speech'
-    
+
     # NOTE: (charles) These functions are basically identical except for a
     # minor change in the xpath, but we're going to prefer explicitness
     # over DRY-ness for the moment.
@@ -194,11 +198,11 @@ class Converter:
                     else:
                         prev.addnext(section)
                         prev = section
-    
+
     def remove_targOrder_attr(self):
         for el in self.tree.iterfind(".//*[@targOrder]"):
             del el.attrib['targOrder']
-    
+
     def write_etree(self):
         with open(self.filename, 'wb') as f:
             etree.indent(self.tree, space="\t")
