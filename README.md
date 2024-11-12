@@ -15,7 +15,7 @@ After installing [poetry](https://python-poetry.org/docs/), run
 $ poetry install
 ```
 
-from the root directory of this repository. The activate the virtual environment for your current shell:
+from the root directory of this repository. Then activate the virtual environment for your current shell:
 
 ```sh
 $ poetry shell
@@ -25,7 +25,7 @@ The converter script accepts just one argument, the `filename` (including releva
 
 
 ```sh
-$ python epidoc_conversion/converter.py path/to/tei_xml.xml
+$ python main.py path/to/tei_xml.xml
 ```
 
 **NOTA BENE**: The converter will update the file _in place_, meaning it will overwrite any unsaved changes if you are currently working on the file.
