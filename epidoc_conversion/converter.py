@@ -104,24 +104,24 @@ class Converter:
     # within the Greek-language el, e.g.,
     # <foreign xml:lang="grc">νόμων <gap reason="illegible"/> o(/soi ai)sxu/nhn fe/rousi</foreign>
     def convert_betacode_to_unicode(self):
-        for node in self.tree.iterfind(f".//*[@{XML_NS}lang='grc']"):
-            if node.text is not None:
-                node.text = conv.beta_to_uni(node.text)
+        logging.info(f"convert_betacode_to_unicode() called")
 
-            for el in node.iterfind(f"./*[@{XML_NS}lang='grc']"):
-                parent = el.getparent()
-                replacement = deepcopy(el)
+        for el in self.tree.iterfind(f".//*[@{XML_NS}lang='grc']"):
+            logging.info(f"Converting betacode to unicode in {el}")
 
-                if el.text is not None:
-                    replacement.text = conv.beta_to_uni(el.text)
-                if el.tail is not None:
-                    replacement.tail = conv.beta_to_uni(el.tail)
+            if el.text is not None:
+                el.text = conv.beta_to_uni(el.text)
 
-                for sub_el in el.iterfind(f"./*"):
-                    if sub_el.tail is not None:
-                        sub_el.tail = conv.beta_to_uni(sub_el.tail)
+        for gap in self.tree.iterfind(f".//{TEI_NS}gap"):
+            logging.info(f"Found a gap")
 
-                parent.replace(el, replacement)
+            gap_parent = gap.getparent()
+
+            if gap_parent.get(f"{XML_NS}lang") == "grc" and gap.tail is not None:
+                gap.tail = conv.beta_to_uni(gap.tail)
+        
+        logging.info(f"convert_betacode_to_unicode() finished")
+
 
     def convert_dates(self):
         for date in self.tree.iterfind(f".//{TEI_NS}date"):
