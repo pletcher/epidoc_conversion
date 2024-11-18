@@ -5,7 +5,7 @@ from lxml.builder import ElementMaker
 
 import logging
 
-logging.basicConfig(level = logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 from .character_entities import ENTITIES
 
@@ -23,6 +23,7 @@ LANGUAGES = {
     "fr": "fra",
     "gr": "grc",
     "greek": "grc",
+    "it": "ita",
     "la": "lat",
 }
 
@@ -112,16 +113,24 @@ class Converter:
             if el.text is not None:
                 el.text = conv.beta_to_uni(el.text)
 
+            for descendant in el.iterdescendants():
+                logging.info(f"Iterating descendants of {el}")
+                if descendant.text is not None:
+                    descendant.text = conv.beta_to_uni(descendant.text)
+
         for gap in self.tree.iterfind(f".//{TEI_NS}gap"):
-            logging.info(f"Found a gap")
+            logging.info(f"Found a <gap> element -- checking parent for language")
 
             gap_parent = gap.getparent()
 
             if gap_parent.get(f"{XML_NS}lang") == "grc" and gap.tail is not None:
-                gap.tail = conv.beta_to_uni(gap.tail)
-        
-        logging.info(f"convert_betacode_to_unicode() finished")
+                logging.info(
+                    f"<gap> element's parent declares 'grc' @lang and <gap> has tail text -- converting {gap.tail} to Unicode"
+                )
 
+                gap.tail = conv.beta_to_uni(gap.tail)
+
+        logging.info(f"convert_betacode_to_unicode() finished")
 
     def convert_dates(self):
         for date in self.tree.iterfind(f".//{TEI_NS}date"):
