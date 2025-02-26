@@ -101,10 +101,13 @@ class Converter:
             replacement.tail = lemma.tail or ""
             lemma.getparent().replace(lemma, replacement)
 
-    # FIXME: This still misses cases where there is an element
-    # within the Greek-language el, e.g.,
-    # <foreign xml:lang="grc">νόμων <gap reason="illegible"/> o(/soi ai)sxu/nhn fe/rousi</foreign>
     def convert_betacode_to_unicode(self):
+        """
+        Convert [@lang='grc'] tags from Betacode to Unicode.
+        Note that we only convert inner `tail` text — i.e.,
+        `el.tail` is not converted because it should not still
+        be Greek.
+        """
         logging.info(f"convert_betacode_to_unicode() called")
 
         for el in self.tree.iterfind(f".//*[@{XML_NS}lang='grc']"):
@@ -116,7 +119,18 @@ class Converter:
             for descendant in el.iterdescendants():
                 logging.info(f"Iterating descendants of {el}")
                 if descendant.text is not None:
-                    descendant.text = conv.beta_to_uni(descendant.text)
+                    if descendant.attrib.get(f"{XML_NS}lang") == "eng":
+                        descendant.text = conv.uni_to_beta(descendant.text)
+                    elif descendant.getparent().attrib.get(f"{XML_NS}lang") == "eng":
+                        descendant.text = conv.uni_to_beta(descendant.text)
+                    else:
+                        descendant.text = conv.beta_to_uni(descendant.text)
+
+                if (
+                    descendant.tail is not None
+                    and descendant.getparent().attrib.get(f"{XML_NS}lang") == "grc"
+                ):
+                    descendant.tail = conv.beta_to_uni(descendant.tail)
 
         for gap in self.tree.iterfind(f".//{TEI_NS}gap"):
             logging.info(f"Found a <gap> element -- checking parent for language")
