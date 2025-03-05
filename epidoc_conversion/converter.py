@@ -126,11 +126,12 @@ class Converter:
                     else:
                         descendant.text = conv.beta_to_uni(descendant.text)
 
-                if (
-                    descendant.tail is not None
-                    and descendant.getparent().attrib.get(f"{XML_NS}lang") == "grc"
-                ):
-                    descendant.tail = conv.beta_to_uni(descendant.tail)
+                if descendant.tail is not None:
+                    if descendant.getparent().attrib.get(f"{XML_NS}lang") == "grc":
+                        descendant.tail = conv.beta_to_uni(descendant.tail)
+                    elif descendant.getparent().attrib.get(f"{XML_NS}lang") == "eng":
+                        descendant.tail = conv.uni_to_beta(descendant.text)
+
 
         for gap in self.tree.iterfind(f".//{TEI_NS}gap"):
             logging.info(f"Found a <gap> element -- checking parent for language")
