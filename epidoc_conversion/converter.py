@@ -1,5 +1,4 @@
 from betacode import conv
-from copy import deepcopy
 from lxml import etree
 from lxml.builder import ElementMaker
 
@@ -28,6 +27,11 @@ LANGUAGES = {
 }
 
 LOGGER = logging.getLogger(__name__)
+
+NAMESPACES = {
+    'tei': 'http://www.tei-c.org/ns/1.0',
+    'xml': 'http://www.w3.org/XML/1998/namespace'
+}
 
 TEI_NS = "{http://www.tei-c.org/ns/1.0}"
 XML_NS = "{http://www.w3.org/XML/1998/namespace}"
@@ -77,7 +81,24 @@ class Converter:
         self.convert_summaries()
         self.convert_sections()
         self.remove_targOrder_attr()
+        self.add_lang_and_urn_to_first_div()
         self.write_etree()
+
+    def add_lang_and_urn_to_first_div(self):
+        body = self.tree.find(f".//tei:body", namespaces=NAMESPACES)
+
+        if body is None:
+            return
+        
+        lang = body.attrib.get(f"{XML_NS}lang")
+        urn = body.attrib.get("n")
+
+        if lang is not None and urn is not None:
+            first_div = self.tree.find(f".//tei:body/tei:div", namespaces=NAMESPACES)
+            first_div.attrib['n'] = urn
+            first_div.attrib[f'{XML_NS}lang'] = lang
+        else:
+            print(body.attrib)
 
     def convert_argument_tags(self):
         for argument in self.tree.iterfind(f".//{TEI_NS}argument"):
