@@ -80,12 +80,13 @@ class Converter:
         self.convert_overviews()
         self.convert_summaries()
         self.convert_sections()
+        self.number_textparts()
         self.remove_targOrder_attr()
         self.add_lang_and_urn_to_first_div()
         self.write_etree()
 
     def add_lang_and_urn_to_first_div(self):
-        body = self.tree.find(f".//tei:body", namespaces=NAMESPACES)
+        body = self.tree.find(".//tei:body", namespaces=NAMESPACES)
 
         if body is None:
             return
@@ -94,7 +95,7 @@ class Converter:
         urn = body.attrib.get("n")
 
         if lang is not None and urn is not None:
-            first_div = self.tree.find(f".//tei:body/tei:div", namespaces=NAMESPACES)
+            first_div = self.tree.find(".//tei:body/tei:div", namespaces=NAMESPACES)
             first_div.attrib['n'] = urn
             first_div.attrib[f'{XML_NS}lang'] = lang
         else:
@@ -129,7 +130,7 @@ class Converter:
         `el.tail` is not converted because it should not still
         be Greek.
         """
-        logging.info(f"convert_betacode_to_unicode() called")
+        logging.info("convert_betacode_to_unicode() called")
 
         for el in self.tree.iterfind(f".//*[@{XML_NS}lang='grc']"):
             logging.info(f"Converting betacode to unicode in {el}")
@@ -155,7 +156,7 @@ class Converter:
 
 
         for gap in self.tree.iterfind(f".//{TEI_NS}gap"):
-            logging.info(f"Found a <gap> element -- checking parent for language")
+            logging.info("Found a <gap> element -- checking parent for language")
 
             gap_parent = gap.getparent()
 
@@ -267,6 +268,20 @@ class Converter:
                     else:
                         prev.addnext(section)
                         prev = section
+
+    def number_textparts(self, root=None):
+        LOGGER.debug("number_textparts() called")
+        if root is None:
+            self.number_textparts(self.tree.find(f".//{TEI_NS}text/{TEI_NS}body/{TEI_NS}div"))
+        else:
+            n = 1
+            for part in root.iterfind(f"./{TEI_NS}div[@type='textpart']"):
+                if part.get("n") is None:
+                    LOGGER.info(f"Numbering {part} with with n={n}")
+                    part.attrib["n"] = str(n)
+                    n += 1
+
+                self.number_textparts(part)
 
     def remove_targOrder_attr(self):
         for el in self.tree.iterfind(".//*[@targOrder]"):
