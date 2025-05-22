@@ -1,8 +1,9 @@
 from betacode import conv
-from lxml import etree
+from copy import deepcopy
 from lxml.builder import ElementMaker
 
 import logging
+import lxml.etree as etree
 
 logging.basicConfig(level=logging.INFO)
 
@@ -83,6 +84,7 @@ class Converter:
         self.number_textparts()
         self.remove_targOrder_attr()
         self.add_lang_and_urn_to_first_div()
+        self.uproot_smyth_parts()
         self.write_etree()
 
     def add_lang_and_urn_to_first_div(self):
@@ -90,7 +92,7 @@ class Converter:
 
         if body is None:
             return
-        
+
         lang = body.attrib.get(f"{XML_NS}lang")
         urn = body.attrib.get("n")
 
@@ -99,7 +101,7 @@ class Converter:
             first_div.attrib['n'] = urn
             first_div.attrib[f'{XML_NS}lang'] = lang
         else:
-            print(body.attrib)
+            LOGGER.debug(body.attrib)
 
     def convert_argument_tags(self):
         for argument in self.tree.iterfind(f".//{TEI_NS}argument"):
@@ -120,7 +122,7 @@ class Converter:
             replacement = APP(
                 LEM(lemma.text or "", {f"{XML_NS}lang": lang}),
             )
-            replacement.tail = lemma.tail or ""
+            replacement.tail = lemma.tail or "" # pyright: ignore
             lemma.getparent().replace(lemma, replacement)
 
     def convert_betacode_to_unicode(self):
@@ -167,7 +169,7 @@ class Converter:
 
                 gap.tail = conv.beta_to_uni(gap.tail)
 
-        logging.info(f"convert_betacode_to_unicode() finished")
+        logging.info("convert_betacode_to_unicode() finished")
 
     def convert_dates(self):
         for date in self.tree.iterfind(f".//{TEI_NS}date"):
@@ -286,6 +288,42 @@ class Converter:
     def remove_targOrder_attr(self):
         for el in self.tree.iterfind(".//*[@targOrder]"):
             del el.attrib["targOrder"]
+
+    def uproot_smyth_parts(self):
+        if "viaf20462595.viaf001" not in self.filename:
+            return None
+
+        self.uproot_sections()
+        self.uproot_subsections()
+        self.uproot_subsubsections()
+        self.uproot_subsubsubsections()
+
+    def uproot_sections(self):
+        self.uproot_children_of("section")
+
+    def uproot_subsections(self):
+        self.uproot_children_of("subsection")
+
+    def uproot_subsubsections(self):
+        self.uproot_children_of("subsubsection")
+
+    def uproot_subsubsubsections(self):
+        self.uproot_children_of("subsubsubsection")
+
+    def uproot_children_of(self, textpart_subtype: str):
+        xpath_expr = f".//tei:div[@subtype='{textpart_subtype}']"
+
+        LOGGER.info(f"Uprooting children of {textpart_subtype}")
+        elements = self.tree.xpath(xpath_expr, namespaces=NAMESPACES)
+
+        LOGGER.info(len(elements))
+        for part in elements:
+            LOGGER.info(part)
+            parent = part.getparent()
+            for child in part:
+                part.addprevious(deepcopy(child))
+            parent.remove(part)
+
 
     def write_etree(self):
         with open(self.filename, "wb") as f:
