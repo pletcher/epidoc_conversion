@@ -81,10 +81,10 @@ class Converter:
         self.convert_overviews()
         self.convert_summaries()
         self.convert_sections()
-        self.number_textparts()
+        # self.number_textparts()
         self.remove_targOrder_attr()
         self.add_lang_and_urn_to_first_div()
-        self.uproot_smyth_parts()
+        # self.uproot_smyth_parts()
         self.write_etree()
 
     def add_lang_and_urn_to_first_div(self):
@@ -272,9 +272,48 @@ class Converter:
                         prev = section
 
     def number_textparts(self, root=None):
+        """
+        Attempts to number textparts sequentially,
+        starting from what should be the CTS
+        root element at .//text/body/div.
+
+        If this element is found, the function is
+        called recursively with each textpart as root.
+
+        If this element is not found, a warning is
+        logged and the function becomes a noop.
+
+        Note that there is an assumption that either all
+        parts are numbered or no parts are numbered. Thus,
+        something like,
+
+        ```xml
+        <div>
+            <div n="2"></div>
+            <div></div>
+        </div>
+        ```
+
+        will result in the following:
+
+        ```xml
+        <div n="1">
+            <div n="2"></div>
+            <div n="1"></div>
+        </div>
+        ```
+
+        because `n` was not incremented in the internal
+        for-loop for the div[@n='2'] node.
+        """
         LOGGER.debug("number_textparts() called")
         if root is None:
-            self.number_textparts(self.tree.find(f".//{TEI_NS}text/{TEI_NS}body/{TEI_NS}div"))
+            maybe_root = self.tree.find(f".//{TEI_NS}text/{TEI_NS}body/{TEI_NS}div")
+
+            if maybe_root is not None:
+                self.number_textparts(maybe_root)
+            else:
+                LOGGER.warn("number_textparts() could not find a root node.")
         else:
             n = 1
             for part in root.iterfind(f"./{TEI_NS}div[@type='textpart']"):
@@ -283,6 +322,8 @@ class Converter:
                     part.attrib["n"] = str(n)
                     n += 1
 
+                # Start counting again using the current
+                # textpart as root
                 self.number_textparts(part)
 
     def remove_targOrder_attr(self):

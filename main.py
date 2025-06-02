@@ -1,7 +1,7 @@
 import argparse
 
-from epidoc_conversion.converter import Converter
-from epidoc_conversion.converter import preconvert
+from src.p6_converter.converter import Converter
+from src.p6_converter.converter import preconvert
 
 parser = argparse.ArgumentParser(
                     prog='Epidoc Conversion',
