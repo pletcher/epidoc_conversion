@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+src/epidoc_conversion.egg-info/PKG-INFO
+src/epidoc_conversion.egg-info/SOURCES.txt
+src/epidoc_conversion.egg-info/dependency_links.txt
+src/epidoc_conversion.egg-info/requires.txt
+src/epidoc_conversion.egg-info/top_level.txt
+src/p6_converter/__init__.py
+src/p6_converter/character_entities.py
+src/p6_converter/converter.py

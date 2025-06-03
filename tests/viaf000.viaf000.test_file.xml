@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<?xml-model href="https://epidoc.stoa.org/schema/latest/tei-epidoc.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+<teiHeader>
+		<fileDesc>
+			<titleStmt>
+				<title>The Republic of Plato</title>
+				<author>James Adam</author>
+				<sponsor>Perseus Project, Tufts University</sponsor>
+				<principal>Gregory Crane</principal>
+				<respStmt>
+					<resp>Prepared under the supervision of</resp>
+					<name>Lisa Cerrato</name>
+				</respStmt>
+				<funder n="org:NEH">National Endowment for the Humanities</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher>Trustees of Tufts University</publisher>
+				<pubPlace>Medford, MA</pubPlace>
+				<authority>Perseus Project</authority>
+			</publicationStmt>
+			<sourceDesc>
+				<bibl>
+					<title>The Republic of Plato</title>
+					<author>James Adam</author>
+					<date>1902</date>
+					<pubPlace>Cambridge</pubPlace>
+					<publisher>Cambridge University Press</publisher>
+				</bibl>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<refsDecl>
+				<refState unit="book" />
+				<refState n="chunk" unit="section" />
+			</refsDecl>
+		</encodingDesc>
+		<profileDesc>
+			<langUsage>
+				<language ident="en">English </language>
+				<language ident="greek">Greek </language>
+				<language ident="la">Latin </language>
+				<language ident="fr">French </language>
+			</langUsage>
+		</profileDesc>
+	</teiHeader>
+    <text xml:lang="en">
+        <body>
+            <div type="edition">
+                <div type="textpart" n="327A" subtype="section">
+					<p>327A - 328B Socrates describes how he visited the Piraeus in company with Glauco, and
+                    was induced by Polemarchus and others to defer his return to Athens.</p>
+					<p>
+						<app>
+							<lem xml:lang="greek" n="U">kate/bhn ktl.</lem>
+						</app> Dionys. Hal. <title xml:lang="la">de comp. verb.</title> p. 208 (Reiske) <foreign
+                            xml:lang="greek"
+                        >o( de\ *pla/twn, tou\s
+                      e(autou= dialo/gous kteni/zwn kai\ bostruxi/zwn, kai\ pa/nta tro/pon a)naple/kwn, ou)
+                      die/lipen o)gdoh/konta gegonw\s e)/th. pa=si ga\r dh/ pou toi=s filolo/gois gnw/rima
+                      ta\ peri\ th=s filoponi/as ta)ndro\s i(storou/mena, ta/ t' a)/lla, kai\ dh\ kai\ ta\
+                      peri\ th\n de/lton h(\n teleuth/santos au)tou= le/gousin eu(reqh=nai poiki/lws
+                      metakeime/nhn th\n a)rxh\n th=s politei/as e)/xousan th/nde “kate/bhn xqe\s
+                      ei)s *peiraia= meta\ *glau/kwnos tou= *)ari/stwnos</foreign>.” See also
+                    Quint. VIII 6. 64, and Diog. Laert. III 37. The latter gives as his authorities
+                    Euphorion and Panaetius. As Cicero was tolerably familiar with the writings of
+                    Panaetius, it is possible that he too has the same story in view in <title xml:lang="la">de
+                      Sen.</title> V 13, where he says of Plato <quote xml:lang="la">“scribens est
+                      mortuus.”</quote> The anecdote may well be true, but does not of course
+                    justify any inference as to the date of composition of the <title>Republic.</title> See
+                      <title>Introd.</title> § 4.</p>
+					<p>
+						<app>
+							<lem xml:lang="greek" n="U">th=| qew=|</lem>
+						</app>. What goddess? Bendis or Athena?
+                    The festival is the Bendideia (354 A) and it is perhaps safest to acquiesce in the usual
+                    view that Bendis is here meant. “Alii Minervam intelligunt, quae vulgo
+                      <foreign xml:lang="greek">h( qeo\s</foreign> appellabatur; neque mihi videtur Socrates in
+                    ista Panathenaeorum propinquitate de Minerva veneranda cogitare non potuisse: sed quod
+                    simpliciter <foreign xml:lang="greek">th\n e(orth\n</foreign> dicit, numina diversa statuere
+                    non sinit” (Schneider). We hear of a temple of Bendis in the Piraeus in 403
+                    B.C. (<foreign xml:lang="greek">th\n o(do\n h( fe/rei pro/s te to\ i(ero\n th=s *mounuxi/as
+                      *)artemi/dos kai\ to\ *bendi/deion</foreign>
+						<bibl n="Xen. Hell. 2.4.11">Xen. <title>Hell.</title> II 4. 11</bibl>). See also
+                      <title>Introd.</title> § 3 and App. I.</p>
+					<p>
+						<app>
+							<lem xml:lang="greek" n="U">nu=n prw=ton</lem>
+						</app>. Perhaps 410 B.C.
+                    <title>Introd.</title> § 3. <pb n="2" />
+					</p>
+					<p>
+						<app>
+							<lem xml:lang="greek" n="U">oi( *qra=|kes</lem>
+						</app>. Probably resident aliens (as
+                    opposed to the <foreign xml:lang="greek">e)pixw/rioi</foreign> or natives), living for
+                    commercial purposes in the Piraeus, which at all times contained a large admixture of
+                    foreign population. It was part of Athenian policy to encourage commercial settlers by
+                    allowing them to exercise their own cults (Foucart <title xml:lang="fr">des assoc. relig.
+                      chez les Grecs</title> p. 131). Foucart holds that the worship of the Thracian goddess
+                    Bendis was brought to the Piraeus by Thracian merchants (p. 84). Others have supposed
+                    that <foreign xml:lang="greek">oi( *qra=|kes</foreign> refers to envoys from Thrace, or
+                    Thracian mercenaries, the survivors of those who came to Athens in 414 B.C. (Thuc. VII
+                    27); but the other view is more probable.</p>
+				</div>
+			</div>
+		</body>
+	</text>
+</TEI>
