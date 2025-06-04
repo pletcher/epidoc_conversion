@@ -105,12 +105,12 @@ class Converter:
         self.convert_sections()
         # self.number_textparts()
         self.remove_targOrder_attr()
-        self.add_lang_and_urn_to_first_div()
+        self.add_lang_and_urn_to_body_and_first_div()
         # self.uproot_smyth_parts()
         self.write_etree()
 
-    def add_lang_and_urn_to_first_div(self):
-        LOGGER.info("add_lang_and_urn_to_first_div() called")
+    def add_lang_and_urn_to_body_and_first_div(self):
+        LOGGER.info("add_lang_and_urn_to_body_and_first_div() called")
 
         body = self.tree.find(".//tei:body", namespaces=NAMESPACES)
 
@@ -134,6 +134,8 @@ class Converter:
 
         if lang is not None and urn is not None:
             first_div = self.tree.find(".//tei:body/tei:div", namespaces=NAMESPACES)
+            body.attrib['n'] = urn
+            body.attrib[f'{XML_NS}lang'] = fix_lang(lang)
             first_div.attrib['n'] = urn
             first_div.attrib[f'{XML_NS}lang'] = fix_lang(lang)
         else:
