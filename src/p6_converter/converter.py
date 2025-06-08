@@ -90,6 +90,8 @@ class Converter:
 
     def convert(self):
         self.convert_lemma_to_applemma()
+        self.convert_note_gloss_to_app()
+        self.remove_div_pg_l()
         self.convert_argument_tags()
         self.convert_bylines()
         self.convert_dates()
@@ -162,6 +164,16 @@ class Converter:
             )
             replacement.tail = lemma.tail or "" # pyright: ignore
             lemma.getparent().replace(lemma, replacement)
+
+    def convert_note_gloss_to_app(self):
+        for note_gloss in self.tree.iterfind(f".//{TEI_NS}note[@type='gloss']"):
+            replacement = APP()
+
+            for child in note_gloss:
+                replacement.append(child) # pyright: ignore
+
+            replacement.tail = note_gloss.tail or "" # pyright: ignore
+            note_gloss.getparent().replace(note_gloss, replacement)
 
     def convert_betacode_to_unicode(self):
         """
@@ -245,6 +257,11 @@ class Converter:
 
         for lang_el in self.tree.iterfind(f".//{TEI_NS}langUsage/{TEI_NS}language"):
             lang = lang_el.get("ident")
+
+            if lang is None:
+                lang = lang_el.get("id")
+                del lang_el.attrib["id"]
+
             lang_el.attrib["ident"] = fix_lang(lang)
 
     def convert_milestones_to_textparts(self):
@@ -264,11 +281,14 @@ class Converter:
                     break
                 siblings.append(sibling)
 
+            if len(siblings) == 0:
+                LOGGER.warn(f"No siblings found for milestone {milestone}; not converting.")
+                continue
+
             div = DIV(
                 type="textpart",
                 subtype=current_unit,
                 n=milestone.get("n", ""),
-                ed=milestone.get("ed", ""),
                 *siblings,
             )
             parent = milestone.getparent()
@@ -363,6 +383,16 @@ class Converter:
                 # Start counting again using the current
                 # textpart as root
                 self.number_textparts(part)
+
+    def remove_div_pg_l(self):
+        LOGGER.info("remove_div_pg_l() called")
+        for div_pg_l in self.tree.iterfind(f".//{TEI_NS}*[@subtype='pg_l']"):
+            parent = div_pg_l.getparent()
+
+            for child in div_pg_l:
+                parent.append(child)
+
+            parent.remove(div_pg_l)
 
     def remove_targOrder_attr(self):
         for el in self.tree.iterfind(".//*[@targOrder]"):
