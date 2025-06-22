@@ -30,12 +30,17 @@ LANGUAGES = {
 LOGGER = logging.getLogger(__name__)
 
 NAMESPACES = {
-    'tei': 'http://www.tei-c.org/ns/1.0',
-    'xml': 'http://www.w3.org/XML/1998/namespace'
+    "tei": "http://www.tei-c.org/ns/1.0",
+    "xml": "http://www.w3.org/XML/1998/namespace",
 }
 
 TEI_NS = "{http://www.tei-c.org/ns/1.0}"
 XML_NS = "{http://www.w3.org/XML/1998/namespace}"
+
+SKIPPABLE_MILESTONE_UNITS = (
+    "pg_l",
+    None,
+)
 
 
 def derive_lang(tree):
@@ -44,21 +49,23 @@ def derive_lang(tree):
     if len(doc_languages) > 0:
         return fix_lang(doc_languages[0].get("ident"))
 
+
 def derive_urn(filename, tree):
     work = filename.split("/")[-1].replace(".xml", "")
     doc_languages = tree.xpath(".//tei:langUsage/tei:language", namespaces=NAMESPACES)
 
     for language in doc_languages:
-        l = fix_lang(language.get("ident"))
+        lang = fix_lang(language.get("ident"))
 
-        LOGGER.debug(l)
+        LOGGER.debug(lang)
 
-        if l == "lat":
+        if lang == "lat":
             return f"urn:cts:latinLit:{work}"
-        if l == "grc":
+        if lang == "grc":
             return f"urn:cts:greekLit:{work}"
 
     return None
+
 
 def fix_date(s):
     try:
@@ -89,6 +96,8 @@ class Converter:
         self.tree = etree.parse(filename, parser=parser)
 
     def convert(self):
+        self.assign_refable_units()
+        self.add_lang_and_urn_to_body_and_first_div()
         self.convert_lemma_to_applemma()
         self.convert_note_gloss_to_app()
         self.remove_div_pg_l()
@@ -100,6 +109,7 @@ class Converter:
         # language attributes have been fixed
         self.convert_betacode_to_unicode()
         self.convert_milestones_to_textparts()
+        self.pro_lege_manilia()
         self.convert_speeches()
         self.convert_summary_children_to_siblings()
         self.convert_overviews()
@@ -107,7 +117,6 @@ class Converter:
         self.convert_sections()
         # self.number_textparts()
         self.remove_targOrder_attr()
-        self.add_lang_and_urn_to_body_and_first_div()
         # self.uproot_smyth_parts()
         self.write_etree()
 
@@ -136,12 +145,34 @@ class Converter:
 
         if lang is not None and urn is not None:
             first_div = self.tree.find(".//tei:body/tei:div", namespaces=NAMESPACES)
-            body.attrib['n'] = urn
-            body.attrib[f'{XML_NS}lang'] = fix_lang(lang)
-            first_div.attrib['n'] = urn
-            first_div.attrib[f'{XML_NS}lang'] = fix_lang(lang)
+            body.attrib["n"] = urn
+            body.attrib[f"{XML_NS}lang"] = fix_lang(lang)
+            first_div.attrib["n"] = urn
+            first_div.attrib[f"{XML_NS}lang"] = fix_lang(lang)
+
+            self.lang = lang
+            self.urn = urn
         else:
             LOGGER.debug(body.attrib)
+
+    def assign_refable_units(self):
+        """
+        Read the `refsDecl`s and create a list of units that can be referenced.
+        This is important for converting milestones to textparts later.
+        """
+
+        refsDecls = self.tree.find(".//tei:refsDecl[@n='CTS']", namespaces=NAMESPACES)
+
+        refable_units = []
+
+        for cRefPattern in refsDecls.iterfind(
+            ".//tei:cRefPattern", namespaces=NAMESPACES
+        ):
+            refable_units.append(cRefPattern.get("n"))
+
+        LOGGER.debug(refable_units)
+
+        self.refable_units = refable_units
 
     def convert_argument_tags(self):
         for argument in self.tree.iterfind(f".//{TEI_NS}argument"):
@@ -162,7 +193,7 @@ class Converter:
             replacement = APP(
                 LEM(lemma.text or "", {f"{XML_NS}lang": lang}),
             )
-            replacement.tail = lemma.tail or "" # pyright: ignore
+            replacement.tail = lemma.tail or ""  # pyright: ignore
             lemma.getparent().replace(lemma, replacement)
 
     def convert_note_gloss_to_app(self):
@@ -170,9 +201,9 @@ class Converter:
             replacement = APP()
 
             for child in note_gloss:
-                replacement.append(child) # pyright: ignore
+                replacement.append(child)  # pyright: ignore
 
-            replacement.tail = note_gloss.tail or "" # pyright: ignore
+            replacement.tail = note_gloss.tail or ""  # pyright: ignore
             note_gloss.getparent().replace(note_gloss, replacement)
 
     def convert_betacode_to_unicode(self):
@@ -205,7 +236,6 @@ class Converter:
                         descendant.tail = conv.beta_to_uni(descendant.tail)
                     elif descendant.getparent().attrib.get(f"{XML_NS}lang") == "eng":
                         descendant.tail = conv.uni_to_beta(descendant.text)
-
 
         for gap in self.tree.iterfind(f".//{TEI_NS}gap"):
             logging.info("Found a <gap> element -- checking parent for language")
@@ -265,11 +295,23 @@ class Converter:
             lang_el.attrib["ident"] = fix_lang(lang)
 
     def convert_milestones_to_textparts(self):
+        """
+        Converts reffable milestones --- milestones whose `unit` attributes
+        match the `n` attributes of a `cRefPattern` declared in the `refsDecl[@n='CTS']`
+        --- into textparts by collecting all of the sibling nodes between one
+        milestone and the next milestone with the same `unit` attribute and appending
+        them as children to a new `<div type="textpart" subtype="unit" n="n">` where
+        `"unit"` is the milestone's `unit` and `"n"` is its `n` attribute.
+        """
+
         for milestone in self.tree.iterfind(f".//{TEI_NS}milestone"):
             current_unit = milestone.get("unit")
 
-            if current_unit is None:
-                break
+            if (
+                current_unit in SKIPPABLE_MILESTONE_UNITS
+                or current_unit not in self.refable_units
+            ):
+                continue
 
             siblings = []
 
@@ -282,7 +324,9 @@ class Converter:
                 siblings.append(sibling)
 
             if len(siblings) == 0:
-                LOGGER.warn(f"No siblings found for milestone {milestone}; not converting.")
+                LOGGER.warn(
+                    f"No siblings found for milestone {milestone.get('n')}; not converting."
+                )
                 continue
 
             div = DIV(
@@ -371,7 +415,7 @@ class Converter:
             if maybe_root is not None:
                 self.number_textparts(maybe_root)
             else:
-                LOGGER.warn("number_textparts() could not find a root node.")
+                LOGGER.warning("number_textparts() could not find a root node.")
         else:
             n = 1
             for part in root.iterfind(f"./{TEI_NS}div[@type='textpart']"):
@@ -383,6 +427,48 @@ class Converter:
                 # Start counting again using the current
                 # textpart as root
                 self.number_textparts(part)
+
+    def pro_lege_manilia(self):
+        if "sec00009.sec004" not in self.urn:
+            return None
+
+        for section in self.tree.iterfind(f".//{TEI_NS}div[@subtype='section']"):
+            # First, move any milestones that are descendants of p tags
+            # so that they are siblings.
+            for milestone in section.iterfind(f".//{TEI_NS}milestone[@unit='pg_l']"):
+                milestone_parent = milestone.getparent()
+
+                if milestone_parent == section:
+                    continue
+
+                LOGGER.info(f"milestone_parent @n: {milestone_parent.get('n')}")
+                LOGGER.info(f"milestone @n: {milestone.get('n')}")
+
+                milestone_parent.addnext(milestone)
+
+            # Then, starting from each milestone, take all of the siblings until we
+            # reach the next milestone. These siblings should become the descendants
+            # of the div[@subtype='subsection'] that will replace the milestone.
+            for milestone in section.iterfind(f"./{TEI_NS}milestone[@unit='pg_l']"):
+                siblings = []
+
+                for sibling in milestone.itersiblings():
+                    if sibling.tag == "milestone":
+                        break
+                    else:
+                        siblings.append(sibling)
+
+                n = milestone.get("n").replace(".", "_")
+                div = DIV(
+                    type="textpart",
+                    subtype="subsection",
+                    n=n,
+                    *siblings,
+                )
+
+                section.append(div)
+
+                milestone.getparent().remove(milestone)
 
     def remove_div_pg_l(self):
         LOGGER.info("remove_div_pg_l() called")
@@ -432,7 +518,6 @@ class Converter:
             for child in part:
                 part.addprevious(deepcopy(child))
             parent.remove(part)
-
 
     def write_etree(self):
         with open(self.filename, "wb") as f:
