@@ -1,7 +1,7 @@
 import argparse
 
-from src.p6_converter.converter import Converter
-from src.p6_converter.converter import preconvert
+from p6_converter.converter import Converter
+from p6_converter.converter import preconvert
 
 parser = argparse.ArgumentParser(
                     prog='Epidoc Conversion',
@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('filename')
 
-if __name__ == '__main__':
+def convert():
     args = parser.parse_args()
     preconvert(args.filename)
     converter = Converter(args.filename)

@@ -1,4 +1,5 @@
 betacode
 hooktest>=1.3.1
 lxml
+pygtrie>=2.5.0
 setuptools>=80.4.0
