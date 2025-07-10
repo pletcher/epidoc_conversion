@@ -1,2 +1,0 @@
-cli
-p6_converter
