@@ -1,36 +1,17 @@
 Epidoc Conversion Tools
 ------
 
-A small module for making old TEI XML Epidoc-compliant.
+A small module for making old TEI XML (somewhat) Epidoc-compliant.
 
 # Overview
 
 See [epidoc_conversion/converter.py](epidoc_conversion/converter.py).
 
-# Using the converter as a script
 
-After installing [poetry](https://python-poetry.org/docs/), run
-
-```sh
-$ poetry install
-```
-
-from the root directory of this repository. Then activate the virtual environment for your current shell:
-
-```sh
-$ poetry shell
-```
-
-The converter script accepts just one argument, the `filename` (including relevant path information) of the TEI XML document that you wish to update.
-
-
-```sh
-$ python main.py path/to/tei_xml.xml
-```
 
 **NOTA BENE**: The converter will update the file _in place_, meaning it will overwrite any unsaved changes if you are currently working on the file.
 
-If, however, you have the (saved) file open in (e.g.) VS Code, you can `cmd/ctrl-Z` after running the script to undo its changes.
+If, however, you have the (saved) file open in your text editor, you can `cmd/ctrl-Z` after running the script to undo its changes.
 
 # License
 
