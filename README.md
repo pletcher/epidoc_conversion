@@ -1,17 +1,39 @@
 Epidoc Conversion Tools
 ------
 
-A small module for making old TEI XML (somewhat) Epidoc-compliant.
+A small module for making old TEI XML (somewhat) Epidoc-compliant. This is pre-pre-alpha software and essentially designed only for internal use. Use at your own risk.
 
 # Overview
 
 See [epidoc_conversion/converter.py](epidoc_conversion/converter.py).
 
+# Installation
 
+It's strongly recommended to set up a [virtual environment](https://docs.python.org/3/library/venv.html) in the directory where you'll be working:
 
-**NOTA BENE**: The converter will update the file _in place_, meaning it will overwrite any unsaved changes if you are currently working on the file.
+```sh
+$ python -m venv .venv
+```
 
-If, however, you have the (saved) file open in your text editor, you can `cmd/ctrl-Z` after running the script to undo its changes.
+Then, activate your venv and install this module from GitHub:
+
+```sh
+$ source .venv/bin/activate
+$ pip install git+https://github.com/pletcher/epidoc_conversion.git
+```
+
+You can now run the script via
+
+```sh
+$ convert path/to/xml/to/update.xml
+```
+
+> [!NOTE]
+> If you are using [uv](https://docs.astral.sh/uv/), you'll need to adjust the above commands accordingly.
+
+> [!IMPORTANT]
+> The converter will update the file _in place_, meaning it will overwrite any unsaved changes if you are currently working on the file.
+> If, however, you have the (saved) file open in your text editor, you can `cmd/ctrl-Z` after running the script to undo its changes.
 
 # License
 
