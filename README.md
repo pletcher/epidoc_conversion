@@ -3,11 +3,11 @@ Epidoc Conversion Tools
 
 A small module for making old TEI XML (somewhat) Epidoc-compliant. This is pre-pre-alpha software and essentially designed only for internal use. Use at your own risk.
 
-# Overview
+## Overview
 
 See [epidoc_conversion/converter.py](epidoc_conversion/converter.py).
 
-# Installation
+## Installation
 
 It's strongly recommended to set up a [virtual environment](https://docs.python.org/3/library/venv.html) in the directory where you'll be working:
 
@@ -22,7 +22,9 @@ $ source .venv/bin/activate
 $ pip install git+https://github.com/pletcher/epidoc_conversion.git
 ```
 
-You can now run the script via
+## Usage
+
+After installation, you can run the script via the `convert` command:
 
 ```sh
 $ convert path/to/xml/to/update.xml
