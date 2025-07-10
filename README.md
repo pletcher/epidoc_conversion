@@ -22,6 +22,9 @@ $ source .venv/bin/activate
 $ pip install git+https://github.com/pletcher/epidoc_conversion.git
 ```
 
+> [!NOTE]
+> If you are using [uv](https://docs.astral.sh/uv/), you'll need to adjust the above commands accordingly.
+
 ## Usage
 
 After installation, you can run the script via the `convert` command:
@@ -29,9 +32,6 @@ After installation, you can run the script via the `convert` command:
 ```sh
 $ convert path/to/xml/to/update.xml
 ```
-
-> [!NOTE]
-> If you are using [uv](https://docs.astral.sh/uv/), you'll need to adjust the above commands accordingly.
 
 > [!IMPORTANT]
 > The converter will update the file _in place_, meaning it will overwrite any unsaved changes if you are currently working on the file.
