@@ -5,9 +5,9 @@ from lxml.builder import ElementMaker
 import logging
 import lxml.etree as etree
 
-logging.basicConfig(level=logging.INFO)
-
 from .character_entities import ENTITIES
+
+logging.basicConfig(level=logging.INFO)
 
 E = ElementMaker(
     namespace="http://www.tei-c.org/ns/1.0", nsmap={None: "http://www.tei-c.org/ns/1.0"}
@@ -41,6 +41,42 @@ SKIPPABLE_MILESTONE_UNITS = (
     "pg_l",
     None,
 )
+
+URN_SUBSTITUTIONS = {
+    "Soph. OC": "urn:cts:greekLit:tlg0011.tlg007",
+    "Soph. OT": "urn:cts:greekLit:tlg0011.tlg004",
+}
+
+
+def convert_citation(s: str) -> str:
+    """
+    Convert a natural language citation, such
+    as `"Soph. OC 437"` to a CTS URN like
+    `"urn:cts:greekLit:tlg0011.tlg007:437"`.
+    """
+
+    # Iterate through the URN_SUBSTITUTIONS
+    # provided above, checking for a match
+    # on the keys. As soon as a match is found,
+    # replace it in the citation, stripping the
+    # result in case of extra spaces. The remaining
+    # part of the string should be the citation
+    # component of a URN, which we can append to
+    # the URN prefix provided as the value from the
+    # matching key in URN_SUBSTITUTIONS.
+    for nat, urn in URN_SUBSTITUTIONS.items():
+        if nat in s:
+            n = s.replace(nat, "").strip()
+
+            # Some citations might reference an
+            # entire work, so we'll need to return
+            # the whole URN.
+            if len(n) > 0:
+                return f"{urn}:{n}"
+            else:
+                return urn
+
+    return s
 
 
 def derive_lang(tree):
@@ -118,6 +154,7 @@ class Converter:
         # self.number_textparts()
         self.remove_targOrder_attr()
         # self.uproot_smyth_parts()
+        self.add_ref_to_bibls()
         self.write_etree()
 
     def add_lang_and_urn_to_body_and_first_div(self):
@@ -155,6 +192,18 @@ class Converter:
         else:
             LOGGER.debug(body.attrib)
 
+    def add_ref_to_bibls(self):
+        for bibl in self.tree.iterfind(".//tei:bibl", namespaces=NAMESPACES):
+            n = bibl.get("n")
+
+            if n is None:
+                LOGGER.warning(f"@n attribute not found at {etree.tostring(bibl)}")
+                continue
+
+            ref_urn = convert_citation(n)
+
+            bibl.set("ref", ref_urn)
+
     def assign_refable_units(self):
         """
         Read the `refsDecl`s and create a list of units that can be referenced.
@@ -186,6 +235,11 @@ class Converter:
             byline.tag = "docAuthor"
 
     def convert_lemma_to_applemma(self):
+        """
+        FIXME: (charles) We should instead use <term> and <gloss> tags:
+        https://epidoc.stoa.org/gl/latest/ref-term.html
+        """
+
         for lemma in self.tree.iterfind(f".//{TEI_NS}lemma"):
             orig_lang = lemma.attrib.get(f"{XML_NS}lang", lemma.attrib.get("lang"))
             lang = fix_lang(orig_lang)
